@@ -104,7 +104,7 @@ class VectorPVR(Dataset):
         pointer = sample[0]
         value = self.aggregator(sample[pointer + 1: 1 + pointer + self.complexity + 1])
 
-        return sample, value
+        return sample.int(), value.int()
 
     def __len__(self):
         return self.size
