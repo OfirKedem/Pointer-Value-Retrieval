@@ -4,20 +4,22 @@ data:
   task: VectorPVR
 
   train_params:
-    size: 10.0e+4
-    complexity: 2
+    size: 10.0e+1
+    complexity: 0
 
   val_params:
     size: 10.0e+2
-    complexity: 2
+    complexity: 0
 
 training:
   optimizer_type: SGD
   optimizer_params:
-    lr: 10.0e-3
+    lr: 0.05
     weight_decay: 1.0e-5
     momentum: 0.9
 
+#  schedular:
+#    num_warmup_steps: 2
 
-  batch_size: 16
-  epochs: 50
+  batch_size: 4
+  epochs: 10

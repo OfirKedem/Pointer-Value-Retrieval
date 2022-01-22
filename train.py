@@ -1,8 +1,10 @@
 import torch
 import yaml
+
 from torch.utils.data import DataLoader
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.callbacks import LearningRateMonitor
 
 from models import models_registry
 from datasets import tasks_registry
@@ -31,20 +33,29 @@ def setup_loaders(config: dict):
 def train(config: dict):
     # Init our model
     train_cfg = config['training']
+    schedular_params = train_cfg.get('schedular')
+    if schedular_params is not None:
+        schedular_params['num_training_steps'] = train_cfg['epochs']
+
     net = models_registry[config['model']]()
-    cls = Classifer(net, train_cfg['optimizer_type'], train_cfg['optimizer_params'])
+    cls = Classifer(net,
+                    train_cfg['optimizer_type'], train_cfg['optimizer_params'],
+                    schedular_params)
 
     # Init DataLoader from Dataset
     train_loader, val_loader = setup_loaders(config)
 
     # setup WandB logger
-    wandb_logger = WandbLogger()
+    wandb_logger = WandbLogger(save_dir='wandb')
+
+    lr_monitor = LearningRateMonitor(logging_interval='step')
 
     # Initialize a trainer
     trainer = Trainer(
         gpus=AVAIL_GPUS,
         max_epochs=train_cfg['epochs'],
-        logger=wandb_logger
+        logger=wandb_logger,
+        callbacks=[lr_monitor]
     )
 
     # Train the model ⚡
