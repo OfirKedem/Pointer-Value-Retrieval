@@ -24,6 +24,8 @@ class VectorPVR(Dataset):
                  aggregation_method: str = 'mod_sum',
                  holdout: int = 0,
                  adversarial: bool = False):
+
+        size = int(size)
         if size > 10 ** 7:
             raise ValueError('Size is to big! Ain`t nobody got RAM for that!')
 
@@ -104,7 +106,7 @@ class VectorPVR(Dataset):
         pointer = sample[0]
         value = self.aggregator(sample[pointer + 1: 1 + pointer + self.complexity + 1])
 
-        return sample.int(), value.int()
+        return sample.long(), value.long()
 
     def __len__(self):
         return self.size

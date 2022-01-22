@@ -1,0 +1,23 @@
+model: MLP
+
+data:
+  task: VectorPVR
+
+  train_params:
+    size: 10.0e+4
+    complexity: 2
+
+  val_params:
+    size: 10.0e+2
+    complexity: 2
+
+training:
+  optimizer_type: SGD
+  optimizer_params:
+    lr: 10.0e-3
+    weight_decay: 1.0e-5
+    momentum: 0.9
+
+
+  batch_size: 16
+  epochs: 50
