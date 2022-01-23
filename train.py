@@ -1,4 +1,7 @@
+import math
+
 import torch
+import wandb
 import yaml
 
 from torch.utils.data import DataLoader
@@ -9,6 +12,7 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from models import models_registry
 from datasets import tasks_registry
 from lightning_classifier import Classifer
+from lightning_classifier_with_schedular import ClassiferWithSchedular
 
 AVAIL_GPUS = min(1, torch.cuda.device_count())
 
@@ -30,17 +34,30 @@ def setup_loaders(config: dict):
     return train_loader, val_loader
 
 
+def steps_in_epochs(config: dict):
+    dataset_size = config['data']['train_params']['size']
+    batch_size = config['training']['batch_size']
+
+    return math.ceil(dataset_size / batch_size)
+
+
 def train(config: dict):
     # Init our model
     train_cfg = config['training']
-    schedular_params = train_cfg.get('schedular')
-    if schedular_params is not None:
-        schedular_params['num_training_steps'] = train_cfg['epochs']
 
     net = models_registry[config['model']]()
     cls = Classifer(net,
-                    train_cfg['optimizer_type'], train_cfg['optimizer_params'],
-                    schedular_params)
+                    train_cfg['optimizer_type'], train_cfg['optimizer_params'])
+
+    schedular_params = train_cfg.get('schedular')
+    if schedular_params is not None:
+        num_steps_in_epoch = steps_in_epochs(config)
+
+        schedular_params['num_warmup_steps'] = schedular_params['num_warmup_epochs'] * num_steps_in_epoch
+        schedular_params['num_training_steps'] = train_cfg['epochs'] * num_steps_in_epoch
+        cls = ClassiferWithSchedular(net,
+                                     train_cfg['optimizer_type'], train_cfg['optimizer_params'],
+                                     schedular_params)
 
     # Init DataLoader from Dataset
     train_loader, val_loader = setup_loaders(config)
@@ -60,6 +77,8 @@ def train(config: dict):
 
     # Train the model ⚡
     trainer.fit(cls, train_loader, val_loader)
+
+    wandb.config.update(config)
 
 
 if __name__ == "__main__":

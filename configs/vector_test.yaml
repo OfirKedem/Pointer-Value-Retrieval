@@ -5,11 +5,14 @@ data:
 
   train_params:
     size: 10.0e+1
-    complexity: 0
+    complexity: 2
+    holdout: 1
 
   val_params:
-    size: 10.0e+2
-    complexity: 0
+    size: 10.0e+1
+    complexity: 2
+    holdout: 1
+    adversarial: true
 
 training:
   optimizer_type: SGD
@@ -18,8 +21,8 @@ training:
     weight_decay: 1.0e-5
     momentum: 0.9
 
-#  schedular:
-#    num_warmup_steps: 2
+  schedular:
+    num_warmup_epochs: 2
 
-  batch_size: 4
-  epochs: 10
+  batch_size: 2
+  epochs: 4

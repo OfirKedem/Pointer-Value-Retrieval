@@ -5,8 +5,6 @@ from torch import nn
 from torch.nn import functional as F
 from torchmetrics import Accuracy
 
-from utils import get_cosine_schedule_with_warmup
-
 optimizers = {'SGD': torch.optim.SGD,
               'Adam': torch.optim.Adam}
 
@@ -14,14 +12,12 @@ optimizers = {'SGD': torch.optim.SGD,
 class Classifer(pl.LightningModule):
     def __init__(self, model: nn.Module,
                  optimizer_type: str,
-                 optimizer_params: dict,
-                 scheduler_param: dict = None):
+                 optimizer_params: dict):
         super().__init__()
 
         self.model = model
         self.optimizer_type = optimizer_type
         self.optimizer_params = optimizer_params
-        self.scheduler_param = scheduler_param
 
         self.train_acc = Accuracy()
         self.val_acc = Accuracy()
@@ -55,9 +51,5 @@ class Classifer(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = optimizers[self.optimizer_type](self.parameters(), **self.optimizer_params)
-        if self.scheduler_param:
-            scheduler = get_cosine_schedule_with_warmup(optimizer, **self.scheduler_param)
-            return [optimizer], [scheduler]
 
-        else:
-            return optimizer
+        return optimizer
