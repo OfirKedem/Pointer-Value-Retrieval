@@ -152,3 +152,4 @@ fabric.properties
 
 /lightning_logs/
 /wandb/
+/data/
