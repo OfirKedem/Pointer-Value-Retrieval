@@ -63,7 +63,8 @@ def train(config: dict):
     train_loader, val_loader = setup_loaders(config)
 
     # setup WandB logger
-    wandb_logger = WandbLogger(save_dir='wandb')
+    wandb_logger = WandbLogger(save_dir='wandb',
+                               project="Pointer-Value-Retrieval")
 
     lr_monitor = LearningRateMonitor(logging_interval='step')
 

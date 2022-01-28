@@ -89,7 +89,7 @@ class VectorPVR(Dataset):
                 curr_value = self.data[range(self.size), pointers + 1 + offset]
                 sample_has_permutation[curr_value != permutation[offset]] = False
 
-            self.data[sample_has_permutation, 1:] = torch.fmod(self.data[sample_has_permutation, 1:], 10)
+            self.data[sample_has_permutation, 1:] = torch.fmod(self.data[sample_has_permutation, 1:] + 1, 10)
 
     def _insert_permutations(self):
         # create # holdout permutation of (0, 1, ... , complexity)
@@ -114,7 +114,7 @@ class VectorPVR(Dataset):
 
 if __name__ == '__main__':
     p = 3
-    ds = VectorPVR(10 ** p, complexity=2, aggregation_method='mod_sum', holdout=2, adversarial=True)
+    ds = VectorPVR(10 ** p, complexity=2, aggregation_method='mod_sum', holdout=2, adversarial=False)
     print(p, ':', _get_tensor_size(ds.data))
 
     for idx in range(len(ds)):

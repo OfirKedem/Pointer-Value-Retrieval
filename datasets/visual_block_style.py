@@ -6,10 +6,10 @@ from torchvision import transforms
 TRAIN_SET = datasets.MNIST(root='../data', train=True, download=True)
 TEST_SET = datasets.MNIST(root='../data', train=False, download=True)
 
-HOLDOUT_CLASSES = {"top_left": [],
-                   "top_right": [1, 2, 3],
-                   "bottom_left": [4, 5, 6],
-                   "bottom_right": [7, 8, 9, 0]}
+HOLDOUT_CLASSES = {0: [],  # top_left
+                   1: [1, 2, 3],  # top_right
+                   2: [4, 5, 6],  # bottom_left
+                   3: [7, 8, 9, 0]}  # bottom_right
 
 TRANSLATION_FACTOR = (40 - 28) / 2 / 40
 TRANSFORM = transforms.Compose([
@@ -39,17 +39,6 @@ def _get_value(labels):
         value = labels[3]
 
     return value
-
-
-def _get_holdout_idxs(label2idxs: dict):
-    ds_size = sum([len(idxs) for idxs in label2idxs.values()])
-    pvr_ds_size = ds_size // 4
-    per_block_per_label_size = pvr_ds_size // 10
-
-    tl_idxs = torch.concat([torch.tensor(idxs)[:per_block_per_label_size] for idxs in label2idxs.values()])
-
-    bl_idxs = []
-    br_idxs = []
 
 
 class BlockStylePVR(Dataset):
@@ -90,7 +79,7 @@ class BlockStylePVR(Dataset):
             self.idxs = self.idxs[:self.pvr_ds_size]
 
         elif mode == "holdout":
-            for i, holdout_class in enumerate(HOLDOUT_CLASSES.values()):
+            for i, holdout_class in HOLDOUT_CLASSES.items():
                 probs = torch.ones(len(self.ds))
                 for label in holdout_class:
                     probs[labels == label] = 0
@@ -99,7 +88,7 @@ class BlockStylePVR(Dataset):
                 self.labels[:, i] = labels[curr_idxs]
 
         elif mode == "adversarial":
-            for i, holdout_class in enumerate(HOLDOUT_CLASSES.values()):
+            for i, holdout_class in HOLDOUT_CLASSES.items():
                 probs = torch.ones(len(self.ds)) if i == 0 else torch.zeros(len(self.ds))
                 for label in holdout_class:
                     probs[labels == label] = 1
