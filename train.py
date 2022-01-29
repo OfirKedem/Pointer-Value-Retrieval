@@ -14,7 +14,10 @@ from datasets import tasks_registry
 from lightning_classifier import Classifer
 from lightning_classifier_with_scheduler import ClassiferWithScheduler
 
+import multiprocessing
+
 AVAIL_GPUS = min(1, torch.cuda.device_count())
+AVAIL_CPUS = multiprocessing.cpu_count()
 
 
 def setup_loaders(config: dict):
@@ -24,12 +27,12 @@ def setup_loaders(config: dict):
     train_ds = tasks_registry[data_cfg['task']](**data_cfg['train_params'])
     train_loader = DataLoader(train_ds, batch_size=train_cfg['batch_size'],
                               pin_memory=True,
-                              num_workers=4)
+                              num_workers=AVAIL_CPUS-1)
 
     val_ds = tasks_registry[data_cfg['task']](**data_cfg['val_params'])
     val_loader = DataLoader(val_ds, batch_size=train_cfg['batch_size'],
                             pin_memory=True,
-                            num_workers=4)
+                            num_workers=AVAIL_CPUS-1)
 
     return train_loader, val_loader
 
@@ -82,8 +85,12 @@ def train(config: dict):
     wandb.config.update(config)
 
 
-if __name__ == "__main__":
+def main():
     config_file = 'configs/vector_test.yaml'
     with open(config_file, 'r') as stream:
         cfg = yaml.safe_load(stream)
     train(cfg)
+
+
+if __name__ == "__main__":
+    main()
