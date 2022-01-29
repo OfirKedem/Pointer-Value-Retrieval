@@ -47,6 +47,8 @@ def steps_in_epochs(config: dict):
 
 
 def train(config: dict):
+    config['random_seed'] = torch.initial_seed()
+
     # Init our model
     train_cfg = config['training']
 
@@ -100,17 +102,25 @@ def train(config: dict):
 def main():
     parser = ArgumentParser()
     parser.add_argument("-c", "--config", type=str, default=None, help="name of yaml file in the config folder")
+    parser.add_argument("-s", "--seed", type=str, default=None, help="set manual random seed")
     args = parser.parse_args()
 
     if args.config is None:
         print("Missing config file path. add it with -c or -config.")
         return
 
+    manual_seed = False
+    if args.seed is not None:
+        manual_seed = True
+        torch.manual_seed(args.seed)
+
     config_file = 'configs/' + args.config
     with open(config_file, 'r') as stream:
         cfg = yaml.safe_load(stream)
 
     print(f'CPUS: {AVAIL_CPUS}, GPUS: {AVAIL_GPUS}')
+    print(f'Random seed: {torch.initial_seed()} {"(Manually set)" if manual_seed else ""}')
+
     train(cfg)
 
 
