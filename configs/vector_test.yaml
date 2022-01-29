@@ -4,17 +4,20 @@ data:
   task: VectorPVR
 
   train_params:
-    size: 10.0e+1
+    size: 1.0e+5
     complexity: 2
     holdout: 1
 
   val_params:
-    size: 10.0e+1
+    size: 1.0e+3
     complexity: 2
     holdout: 1
     adversarial: true
 
 training:
+  mixed_precision: true # 'mixed-precision training' improves performance
+  val_check_interval: 0.25 # fraction of train epoch
+
   optimizer_type: SGD
   optimizer_params:
     lr: 0.05
@@ -22,7 +25,7 @@ training:
     momentum: 0.9
 
   scheduler:
-    num_warmup_epochs: 2
+    num_warmup_epochs: 10
 
-  batch_size: 2
-  epochs: 4
+  batch_size: 1024
+  epochs: 200

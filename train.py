@@ -49,8 +49,11 @@ def train(config: dict):
     train_cfg = config['training']
 
     net = models_registry[config['model']]()
-    cls = Classifer(net,
-                    train_cfg['optimizer_type'], train_cfg['optimizer_params'])
+    cls = Classifer(
+        net,
+        train_cfg['optimizer_type'],
+        train_cfg['optimizer_params']
+    )
 
     scheduler_params = train_cfg.get('scheduler')
     if scheduler_params is not None:
@@ -58,15 +61,18 @@ def train(config: dict):
 
         scheduler_params['num_warmup_steps'] = scheduler_params['num_warmup_epochs'] * num_steps_in_epoch
         scheduler_params['num_training_steps'] = train_cfg['epochs'] * num_steps_in_epoch
-        cls = ClassiferWithScheduler(net,
-                                     train_cfg['optimizer_type'], train_cfg['optimizer_params'],
-                                     scheduler_params)
+        cls = ClassiferWithScheduler(
+            net,
+            train_cfg['optimizer_type'],
+            train_cfg['optimizer_params'],
+            scheduler_params
+        )
 
     # Init DataLoader from Dataset
     train_loader, val_loader = setup_loaders(config)
 
     # setup WandB logger
-    wandb_logger = WandbLogger(save_dir='wandb',
+    wandb_logger = WandbLogger(save_dir=None,
                                project="pointer-value-retrieval",
                                entity="deep-learning-course-project")
 
@@ -74,7 +80,10 @@ def train(config: dict):
 
     # Initialize a trainer
     trainer = Trainer(
+        val_check_interval=train_cfg['val_check_interval'],
         gpus=AVAIL_GPUS,
+        precision=16 if AVAIL_GPUS > 0 and train_cfg['mixed_precision'] else 32,
+        strategy='ddp' if AVAIL_GPUS > 1 else None,
         max_epochs=train_cfg['epochs'],
         logger=wandb_logger,
         callbacks=[lr_monitor]
@@ -87,6 +96,8 @@ def train(config: dict):
 
 
 def main():
+    print(f'CPUS: {AVAIL_CPUS}, GPUS: {AVAIL_GPUS}')
+
     config_file = 'configs/vector_test.yaml'
     with open(config_file, 'r') as stream:
         cfg = yaml.safe_load(stream)
