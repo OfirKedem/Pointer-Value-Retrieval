@@ -53,48 +53,52 @@ class BlockStylePVR(Dataset):
             mode: "holdout" or "adversarial" or "iid".
             size: dataset size
         """
-        if train:
-            self.ds = TRAIN_SET
-        else:
-            self.ds = TEST_SET
+
+        self.ds = TRAIN_SET if train else TEST_SET
 
         if size is not None and size > len(self.ds) // 4:
             raise ValueError(f"Requested dataset size is too big. Can be up too {len(self.ds) // 4}.")
 
+        # use maximum size if size is null
         self.pvr_ds_size = len(self.ds) // 4 if size is None else int(size)
 
-        labels = []
+        # the labels (0-9) of the images in the dataset
+        ds_labels = []
         for idx, (_, y) in enumerate(self.ds):
-            labels.append(y)
-        labels = torch.tensor(labels)
+            ds_labels.append(y)
+        ds_labels = torch.tensor(ds_labels)
 
         self.idxs = torch.zeros([self.pvr_ds_size, 4], dtype=torch.long)
-        self.labels = torch.zeros([self.pvr_ds_size, 4], dtype=torch.long)
+        self.labels = torch.zeros([self.pvr_ds_size, 4], dtype=torch.long)  # 0-9
 
         if mode == 'iid':
-            self.labels = labels.reshape([-1, 4])
-            self.labels = self.labels[:self.pvr_ds_size]
+            # the labels (0-9) of the 4 digits in each sample
+            self.labels = ds_labels.reshape([-1, 4])  # group into 4's
+            self.labels = self.labels[:self.pvr_ds_size]  # trim to requested size
 
-            self.idxs = torch.arange(len(self.ds)).reshape([-1, 4])
-            self.idxs = self.idxs[:self.pvr_ds_size]
+            # the original idx of the 4 digits in each sample
+            self.idxs = torch.arange(len(self.ds)).reshape([-1, 4])  # group into 4's
+            self.idxs = self.idxs[:self.pvr_ds_size]  # trim to requested size
 
         elif mode == "holdout":
+            # sample from the ds excluding the labels that are held out
             for i, holdout_class in HOLDOUT_CLASSES.items():
                 probs = torch.ones(len(self.ds))
                 for label in holdout_class:
-                    probs[labels == label] = 0
+                    probs[ds_labels == label] = 0
                 curr_idxs = torch.multinomial(probs, self.pvr_ds_size)
                 self.idxs[:, i] = curr_idxs
-                self.labels[:, i] = labels[curr_idxs]
+                self.labels[:, i] = ds_labels[curr_idxs]
 
         elif mode == "adversarial":
+            # sample from the ds only where the labels are held out
             for i, holdout_class in HOLDOUT_CLASSES.items():
                 probs = torch.ones(len(self.ds)) if i == 0 else torch.zeros(len(self.ds))
                 for label in holdout_class:
-                    probs[labels == label] = 1
+                    probs[ds_labels == label] = 1
                 curr_idxs = torch.multinomial(probs, self.pvr_ds_size)
                 self.idxs[:, i] = curr_idxs
-                self.labels[:, i] = labels[curr_idxs]
+                self.labels[:, i] = ds_labels[curr_idxs]
 
         else:
             raise ValueError("Unknown dataset mode.")
@@ -103,13 +107,17 @@ class BlockStylePVR(Dataset):
         labels = self.labels[idx]
         idxs = self.idxs[idx]
 
-        value = _get_value(labels)
-
+        # for each label, get the matching image from the ds using the idx
+        # transform it (fit into 40x40 and translate randomly)
+        # and then put in the appropriate location in the result image
         x = torch.zeros([1, 80, 80])
         x[0, :40, :40] = TRANSFORM(self.ds[idxs[0]][0])
         x[0, :40, 40:] = TRANSFORM(self.ds[idxs[1]][0])
         x[0, 40:, :40] = TRANSFORM(self.ds[idxs[2]][0])
         x[0, 40:, 40:] = TRANSFORM(self.ds[idxs[3]][0])
+
+        # calculate the value based on the pointer
+        value = _get_value(labels)
 
         return x, value
 
@@ -117,7 +125,7 @@ class BlockStylePVR(Dataset):
         return self.pvr_ds_size
 
 
-if __name__ == "__main__":
+def main():
     import matplotlib.pyplot as plt
 
     ds = BlockStylePVR(train=True, mode='iid', size=None)
@@ -129,3 +137,7 @@ if __name__ == "__main__":
         plt.show()
 
     print(ds[0][0].shape)
+
+
+if __name__ == "__main__":
+    main()
