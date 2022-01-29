@@ -12,7 +12,7 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from models import models_registry
 from datasets import tasks_registry
 from lightning_classifier import Classifer
-from lightning_classifier_with_schedular import ClassiferWithSchedular
+from lightning_classifier_with_scheduler import ClassiferWithScheduler
 
 AVAIL_GPUS = min(1, torch.cuda.device_count())
 
@@ -49,22 +49,22 @@ def train(config: dict):
     cls = Classifer(net,
                     train_cfg['optimizer_type'], train_cfg['optimizer_params'])
 
-    schedular_params = train_cfg.get('schedular')
-    if schedular_params is not None:
+    scheduler_params = train_cfg.get('scheduler')
+    if scheduler_params is not None:
         num_steps_in_epoch = steps_in_epochs(config)
 
-        schedular_params['num_warmup_steps'] = schedular_params['num_warmup_epochs'] * num_steps_in_epoch
-        schedular_params['num_training_steps'] = train_cfg['epochs'] * num_steps_in_epoch
-        cls = ClassiferWithSchedular(net,
+        scheduler_params['num_warmup_steps'] = scheduler_params['num_warmup_epochs'] * num_steps_in_epoch
+        scheduler_params['num_training_steps'] = train_cfg['epochs'] * num_steps_in_epoch
+        cls = ClassiferWithScheduler(net,
                                      train_cfg['optimizer_type'], train_cfg['optimizer_params'],
-                                     schedular_params)
+                                     scheduler_params)
 
     # Init DataLoader from Dataset
     train_loader, val_loader = setup_loaders(config)
 
     # setup WandB logger
     wandb_logger = WandbLogger(save_dir='wandb',
-                               project="Pointer-Value-Retrieval")
+                               project="pointer-value-retrieval")
 
     lr_monitor = LearningRateMonitor(logging_interval='step')
 

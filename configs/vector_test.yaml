@@ -21,7 +21,7 @@ training:
     weight_decay: 1.0e-5
     momentum: 0.9
 
-  schedular:
+  scheduler:
     num_warmup_epochs: 2
 
   batch_size: 2

@@ -19,6 +19,8 @@ def maj_vote(x: torch.Tensor):
 
 
 class VectorPVR(Dataset):
+    sample_size = 11  # pointer + 10 digits
+
     def __init__(self,
                  size: int,
                  complexity: int = 0,  # size of the window (m in the article)
@@ -53,7 +55,7 @@ class VectorPVR(Dataset):
         self.aggregator = self._set_up_aggregator(aggregation_method)
 
         # data is built from numbers 0-9
-        self.data = torch.randint(10, size=(size, 11), dtype=torch.uint8)
+        self.data = torch.randint(10, size=(size, self.sample_size), dtype=torch.uint8)
 
         # the pointer value should be limited so the window will fit in the samples
         self.data[:, 0] = torch.randint(10 - complexity, size=[size], dtype=torch.uint8)

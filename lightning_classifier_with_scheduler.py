@@ -48,7 +48,7 @@ optimizers = {'SGD': torch.optim.SGD,
               'Adam': torch.optim.Adam}
 
 
-class ClassiferWithSchedular(pl.LightningModule):
+class ClassiferWithScheduler(pl.LightningModule):
     def __init__(self, model: nn.Module,
                  optimizer_type: str,
                  optimizer_params: dict,

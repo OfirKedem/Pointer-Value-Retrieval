@@ -5,8 +5,10 @@ from torch import nn
 from torch.nn import functional as F
 from torchmetrics import Accuracy
 
-optimizers = {'SGD': torch.optim.SGD,
-              'Adam': torch.optim.Adam}
+optimizers = {
+    'SGD': torch.optim.SGD,
+    'Adam': torch.optim.Adam
+}
 
 
 class Classifer(pl.LightningModule):

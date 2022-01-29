@@ -68,6 +68,7 @@ class BlockStylePVR(Dataset):
             ds_labels.append(y)
         ds_labels = torch.tensor(ds_labels)
 
+        # dtype must be torch.long, otherwise it will crash during training
         self.idxs = torch.zeros([self.pvr_ds_size, 4], dtype=torch.long)
         self.labels = torch.zeros([self.pvr_ds_size, 4], dtype=torch.long)  # 0-9
 
