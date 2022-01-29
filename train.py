@@ -14,6 +14,8 @@ from datasets import tasks_registry
 from lightning_classifier import Classifer
 from lightning_classifier_with_scheduler import ClassiferWithScheduler
 
+from argparse import ArgumentParser
+
 import multiprocessing
 
 AVAIL_GPUS = min(1, torch.cuda.device_count())
@@ -96,11 +98,19 @@ def train(config: dict):
 
 
 def main():
-    print(f'CPUS: {AVAIL_CPUS}, GPUS: {AVAIL_GPUS}')
+    parser = ArgumentParser()
+    parser.add_argument("-c", "--config", type=str, default=None, help="name of yaml file in the config folder")
+    args = parser.parse_args()
 
-    config_file = 'configs/vector_test.yaml'
+    if args.config is None:
+        print("Missing config file path. add it with -c or -config.")
+        return
+
+    config_file = 'configs/' + args.config
     with open(config_file, 'r') as stream:
         cfg = yaml.safe_load(stream)
+
+    print(f'CPUS: {AVAIL_CPUS}, GPUS: {AVAIL_GPUS}')
     train(cfg)
 
 
