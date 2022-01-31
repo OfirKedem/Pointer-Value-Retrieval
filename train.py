@@ -84,10 +84,9 @@ def train(config: dict):
 
     # Initialize a trainer
     trainer = Trainer(
-        val_check_interval=train_cfg['val_check_interval'],
+        val_check_interval=float(train_cfg['val_check_interval']),
         gpus=AVAIL_GPUS,
         precision=16 if AVAIL_GPUS > 0 and train_cfg['mixed_precision'] else 32,
-        strategy='ddp' if AVAIL_GPUS > 1 else None,
         max_epochs=train_cfg['epochs'],
         logger=wandb_logger,
         callbacks=[lr_monitor]
@@ -101,7 +100,7 @@ def train(config: dict):
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("-c", "--config", type=str, default=None, help="name of yaml file in the config folder")
+    parser.add_argument("-c", "--config", type=str, default=None, help="path to yaml config file")
     parser.add_argument("-s", "--seed", type=str, default=None, help="set manual random seed")
     args = parser.parse_args()
 
@@ -114,8 +113,7 @@ def main():
         manual_seed = True
         torch.manual_seed(args.seed)
 
-    config_file = 'configs/' + args.config
-    with open(config_file, 'r') as stream:
+    with open(args.config, 'r') as stream:
         cfg = yaml.safe_load(stream)
 
     print(f'CPUS: {AVAIL_CPUS}, GPUS: {AVAIL_GPUS}')
