@@ -2,6 +2,7 @@ import yaml
 from train import train
 import copy
 from argparse import ArgumentParser
+from math import ceil
 
 CONFIG_PATH = "configs/massive_datasets_fig12.yaml"
 
@@ -21,6 +22,8 @@ def single_run(config, train_ds_size, complexity):
     train_batch_size = train_cfg["train_batch_size"]
     log_every_n_steps = train_cfg["log_every_n_steps"]
     val_check_interval = train_cfg["val_check_interval"]
+    epochs = train_cfg["epochs"]
+
 
     exp_name = get_exp_name(train_ds_size, complexity)
 
@@ -43,12 +46,17 @@ def single_run(config, train_ds_size, complexity):
     val_check_interval_steps = \
         val_check_interval if isinstance(val_check_interval, int) else steps_in_epoch * val_check_interval
 
+    # modify val_check_interval
     if val_check_interval_steps < 50:
         if 'val_check_interval' in train_cfg:
             del train_cfg["val_check_interval"]
         train_cfg["check_val_every_n_epoch"] = int(50.0 / steps_in_epoch)
     else:
         train_cfg['val_check_interval'] = val_check_interval
+
+    # modify epochs according to minimum steps requirement
+    if epochs * steps_in_epoch < 800:
+        train_cfg['epochs'] = ceil(800.0 / steps_in_epoch)
 
     # print experiment details
     str_to_print = f"*** {exp_name} | Size: {train_ds_size:.1e} ({train_ds_size}), Complexity: {complexity} ***"

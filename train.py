@@ -122,7 +122,6 @@ def train(config: dict):
         gpus=AVAIL_GPUS,
         precision=16 if (AVAIL_GPUS > 0 and train_cfg['mixed_precision']) else 32,
         max_epochs=train_cfg['epochs'],
-        min_steps=train_cfg['min_steps'],
         logger=wandb_logger,
         callbacks=[lr_monitor, logger_callback]
     )
