@@ -34,6 +34,7 @@ class Classifer(pl.LightningModule):
         loss = F.cross_entropy(logits, y)
         self.train_acc(preds, y)
 
+        # log to wandb
         self.log("train_loss", loss)
         self.log("train_acc", self.train_acc)
 

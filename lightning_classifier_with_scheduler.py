@@ -85,6 +85,7 @@ class ClassiferWithScheduler(pl.LightningModule):
 
         self.train_acc(preds, y)
 
+        # log to wandb
         self.log("train_loss", loss)
         self.log("train_acc", self.train_acc)
 

@@ -10,6 +10,7 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import LearningRateMonitor
 
+from callbacks.logger_callback import LoggerCallback
 from models import models_registry
 from datasets import tasks_registry
 from lightning_classifier import Classifer
@@ -82,15 +83,17 @@ def train(config: dict):
                                entity="deep-learning-course-project")
 
     lr_monitor = LearningRateMonitor(logging_interval='step')
+    logger_callback = LoggerCallback()
 
     # Initialize a trainer
     trainer = Trainer(
         val_check_interval=float(train_cfg['val_check_interval']),
+        log_every_n_steps=train_cfg['log_every_n_steps'],
         gpus=AVAIL_GPUS,
-        precision=16 if AVAIL_GPUS > 0 and train_cfg['mixed_precision'] else 32,
+        precision=16 if (AVAIL_GPUS > 0 and train_cfg['mixed_precision']) else 32,
         max_epochs=train_cfg['epochs'],
         logger=wandb_logger,
-        callbacks=[lr_monitor]
+        callbacks=[lr_monitor, logger_callback]
     )
 
     # Train the model ⚡
