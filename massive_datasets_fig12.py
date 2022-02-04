@@ -58,7 +58,7 @@ def single_run(config, train_ds_size, complexity):
     print('-' * len(str_to_print) + '\n')
 
     # Train ⚡
-    # train(config)
+    train(config)
 
 
 def loop_all_runs(config):
