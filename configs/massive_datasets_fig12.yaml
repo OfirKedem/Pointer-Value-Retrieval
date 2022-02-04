@@ -1,5 +1,5 @@
 # name: <set in loop>
-group: massive-datasets-fig12-2
+group: massive-datasets-fig12-3
 
 model: MLP
 random_seed: 42
