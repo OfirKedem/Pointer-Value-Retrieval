@@ -29,23 +29,25 @@ def setup_loaders(config: dict):
     train_cfg = config['training']
 
     train_ds = tasks_registry[data_cfg['task']](**data_cfg['train_params'])
-    train_loader = DataLoader(train_ds, batch_size=train_cfg['batch_size'],
+    train_batch_size = train_cfg['train_batch_size']
+    train_loader = DataLoader(train_ds, batch_size=train_batch_size,
                               pin_memory=True,
-                              num_workers=AVAIL_CPUS-1)
+                              num_workers=AVAIL_CPUS - 1)
 
+    eval_batch_size = train_cfg['eval_batch_size'] if 'eval_batch_size' in train_cfg else train_batch_size
     val_ds = tasks_registry[data_cfg['task']](**data_cfg['val_params'])
-    val_loader = DataLoader(val_ds, batch_size=train_cfg['batch_size'],
+    val_loader = DataLoader(val_ds, batch_size=eval_batch_size,
                             pin_memory=True,
-                            num_workers=AVAIL_CPUS-1)
+                            num_workers=AVAIL_CPUS - 1)
 
     return train_loader, val_loader
 
 
 def steps_in_epochs(config: dict):
     dataset_size = config['data']['train_params']['size']
-    batch_size = config['training']['batch_size']
+    train_batch_size = config['training']['train_batch_size']
 
-    return math.ceil(dataset_size / batch_size)
+    return math.ceil(dataset_size / train_batch_size)
 
 
 def train(config: dict):
@@ -104,13 +106,23 @@ def train(config: dict):
     lr_monitor = LearningRateMonitor(logging_interval='step')
     logger_callback = LoggerCallback()
 
+    # determine validation frequency
+    if 'val_check_interval' in train_cfg and 'check_val_every_n_epoch' in train_cfg:
+        raise Exception("'val_check_interval' and 'check_val_every_n_epoch' shouldn't be used simultaneously")
+    val_check_interval = train_cfg['val_check_interval'] \
+        if 'val_check_interval' in train_cfg else 1.0
+    check_val_every_n_epoch = train_cfg['check_val_every_n_epoch'] \
+        if 'check_val_every_n_epoch' in train_cfg else 1
+
     # Initialize a trainer
     trainer = Trainer(
-        val_check_interval=float(train_cfg['val_check_interval']),
+        val_check_interval=val_check_interval,
+        check_val_every_n_epoch=check_val_every_n_epoch,
         log_every_n_steps=train_cfg['log_every_n_steps'],
         gpus=AVAIL_GPUS,
         precision=16 if (AVAIL_GPUS > 0 and train_cfg['mixed_precision']) else 32,
         max_epochs=train_cfg['epochs'],
+        min_steps=train_cfg['min_steps'],
         logger=wandb_logger,
         callbacks=[lr_monitor, logger_callback]
     )

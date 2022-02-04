@@ -1,4 +1,8 @@
+#name: name
+#group: group
+
 model: MLP
+#random_seed: 42
 
 data:
   task: VectorPVR
@@ -16,8 +20,11 @@ data:
 
 training:
   mixed_precision: false # 'mixed-precision training' improves performance
-  val_check_interval: 1 # fraction of train epoch
   log_every_n_steps: 50 # default is 50
+
+  # validation frequency - use only one:
+  val_check_interval: 1.0 # float = fraction of train epoch, int = number of steps (no more than 1 epoch)
+  #  check_val_every_n_epoch: # (int)
 
   optimizer_type: SGD
   optimizer_params:
@@ -28,5 +35,7 @@ training:
   scheduler:
     num_warmup_epochs: 10
 
-  batch_size: 16
+  train_batch_size: 1024
+  eval_batch_size: 1024
   epochs: 200
+  min_steps: 800
