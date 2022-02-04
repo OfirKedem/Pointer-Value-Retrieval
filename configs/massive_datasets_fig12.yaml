@@ -1,0 +1,40 @@
+# name: <set in loop>
+group: massive-datasets-fig12-2
+
+model: MLP
+random_seed: 42
+
+data:
+  task: VectorPVR
+
+  train_params:
+    holdout: 0
+    # size: <set in loop>
+    # complexity: <set in loop>
+
+  val_params:
+    size: 1.0e+5
+    holdout: 0
+    # complexity: <set in loop>
+
+training:
+  mixed_precision: false # 'mixed-precision training' improves performance
+  log_every_n_steps: 50 # default is 50
+
+  # validation frequency - use only one:
+  val_check_interval: 1.0 # float = fraction of train epoch, int = number of steps (no more than 1 epoch)
+  #  check_val_every_n_epoch: # (int)
+
+  optimizer_type: SGD
+  optimizer_params:
+    lr: 0.05
+    weight_decay: 1.0e-5
+    momentum: 0.9
+
+  scheduler:
+    num_warmup_epochs: 10
+
+  train_batch_size: 1024
+  eval_batch_size: 1024
+  epochs: 200
+  min_steps: 800
