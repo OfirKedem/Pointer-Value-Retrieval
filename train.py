@@ -49,7 +49,16 @@ def steps_in_epochs(config: dict):
 
 
 def train(config: dict):
-    config['random_seed'] = torch.initial_seed()
+    print(f'CPUS: {AVAIL_CPUS}, GPUS: {AVAIL_GPUS}')
+
+    # set random seed
+    is_manual_seed = 'random_seed' in config and config['random_seed'] is not None
+    if is_manual_seed:
+        pytorch_lightning.seed_everything(config['random_seed'])
+    else:
+        config['random_seed'] = torch.initial_seed()
+
+    print(f'Random seed: {torch.initial_seed()} {"(Manually set)" if is_manual_seed else ""}')
 
     # Init our model
     train_cfg = config['training']
@@ -78,7 +87,8 @@ def train(config: dict):
     train_loader, val_loader = setup_loaders(config)
 
     # setup WandB logger
-    wandb_logger = WandbLogger(project="pointer-value-retrieval",
+    wandb_logger = WandbLogger(save_dir=None,
+                               project="pointer-value-retrieval",
                                entity="deep-learning-course-project",
                                name=config["name"],
                                group=config["group"])
@@ -121,20 +131,16 @@ def main():
         print("Missing config file path. add it with -c or -config.")
         return
 
-    manual_seed = False
-    if args.seed is not None:
-        manual_seed = True
-        pytorch_lightning.seed_everything(args.seed)
-
     with open(args.config, 'r') as stream:
         config = yaml.safe_load(stream)
 
-    # add name and group to config
-    config["name"] = args.name
-    config["group"] = args.group
-
-    print(f'CPUS: {AVAIL_CPUS}, GPUS: {AVAIL_GPUS}')
-    print(f'Random seed: {torch.initial_seed()} {"(Manually set)" if manual_seed else ""}')
+    # override config with console parameters
+    if args.seed is not None:
+        config['random_seed'] = args.seed
+    if args.name is not None:
+        config["name"] = args.name
+    if args.group is not None:
+        config["group"] = args.group
 
     train(config)
 
