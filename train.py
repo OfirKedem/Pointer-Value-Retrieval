@@ -1,5 +1,6 @@
 import math
 
+import pytorch_lightning
 import torch
 import wandb
 import yaml
@@ -111,7 +112,7 @@ def main():
     manual_seed = False
     if args.seed is not None:
         manual_seed = True
-        torch.manual_seed(args.seed)
+        pytorch_lightning.seed_everything(args.seed)
 
     with open(args.config, 'r') as stream:
         cfg = yaml.safe_load(stream)
