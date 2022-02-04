@@ -29,7 +29,7 @@ class VectorPVR(Dataset):
                  adversarial: bool = False):
 
         size = int(size)
-        if size > 10 ** 7:
+        if size > 10 ** 8:
             raise ValueError('Size is to big! Ain`t nobody got RAM for that!')
 
         if not isinstance(complexity, int):
