@@ -78,9 +78,13 @@ def train(config: dict):
     train_loader, val_loader = setup_loaders(config)
 
     # setup WandB logger
-    wandb_logger = WandbLogger(save_dir=None,
-                               project="pointer-value-retrieval",
-                               entity="deep-learning-course-project")
+    wandb_logger = WandbLogger(project="pointer-value-retrieval",
+                               entity="deep-learning-course-project",
+                               name=config["name"],
+                               group=config["group"])
+    # log the config before training starts
+    wandb_logger.experiment.config.update(config)
+    print(wandb_logger.name)
 
     lr_monitor = LearningRateMonitor(logging_interval='step')
     logger_callback = LoggerCallback()
@@ -99,13 +103,13 @@ def train(config: dict):
     # Train the model ⚡
     trainer.fit(cls, train_loader, val_loader)
 
-    wandb.config.update(config)
-
 
 def main():
     parser = ArgumentParser()
     parser.add_argument("-c", "--config", type=str, default=None, help="path to yaml config file")
     parser.add_argument("-s", "--seed", type=str, default=None, help="set manual random seed")
+    parser.add_argument("-g", "--group", type=str, default=None, help="WandbLogger group")
+    parser.add_argument("-n", "--name", type=str, default=None, help="WandbLogger name")
     args = parser.parse_args()
 
     if args.config is None:
@@ -118,12 +122,16 @@ def main():
         pytorch_lightning.seed_everything(args.seed)
 
     with open(args.config, 'r') as stream:
-        cfg = yaml.safe_load(stream)
+        config = yaml.safe_load(stream)
+
+    # add name and group to config
+    config["name"] = args.name
+    config["group"] = args.group
 
     print(f'CPUS: {AVAIL_CPUS}, GPUS: {AVAIL_GPUS}')
     print(f'Random seed: {torch.initial_seed()} {"(Manually set)" if manual_seed else ""}')
 
-    train(cfg)
+    train(config)
 
 
 if __name__ == "__main__":
