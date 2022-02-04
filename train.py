@@ -82,9 +82,14 @@ def train(config: dict):
                                entity="deep-learning-course-project",
                                name=config["name"],
                                group=config["group"])
+    # update experiment name if it was auto-generated
+    config["name"] = wandb_logger.experiment.name
+
+    print(f'Experiment group: {config["group"]}')
+    print(f'Experiment name: {config["name"]}')
+
     # log the config before training starts
     wandb_logger.experiment.config.update(config)
-    print(wandb_logger.name)
 
     lr_monitor = LearningRateMonitor(logging_interval='step')
     logger_callback = LoggerCallback()
