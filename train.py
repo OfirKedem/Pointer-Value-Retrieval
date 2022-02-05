@@ -139,6 +139,8 @@ def train(config: dict):
         logger=wandb_logger,
         callbacks=callbacks
     )
+    # add num_steps_in_epoch to trainer, used in logger_callback
+    trainer.num_steps_in_epoch = num_steps_in_epoch
 
     # Train the model ⚡
     trainer.fit(cls, train_loader, val_loader)
