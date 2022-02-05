@@ -1,5 +1,5 @@
-#name: name
-#group: group
+name: 'debug'
+group:
 
 model: MLP
 #random_seed: 42
@@ -8,18 +8,18 @@ data:
   task: VectorPVR
 
   train_params:
-    size: 1.0e+4
-    complexity: 2
-    holdout: 1
+    size: 1.0e+5
+    complexity: 0
+    holdout: 0
 
   val_params:
     size: 1.0e+3
-    complexity: 2
-    holdout: 1
-    adversarial: true
+    complexity: 0
+    holdout: 0
+    adversarial: false
 
 training:
-  mixed_precision: false # 'mixed-precision training' improves performance
+  mixed_precision: false # 'mixed-precision training' improves performance. is it?
   log_every_n_steps: 50 # default is 50
 
   # validation frequency - use only one:
@@ -35,10 +35,16 @@ training:
   scheduler:
     num_warmup_epochs: 10
 
-#  early_stopping:
-#    hard_patience: 3 # checked every train epoch
-#    soft_patience: 10 # checked every val epoch
-#    verbose: True
+  callbacks:
+    early_stopping:
+      hard_patience: 3 # checked every train epoch
+      soft_patience: 10 # checked every val epoch
+      verbose: True
+
+    checkpoint_saving:
+      save_top_k: 10
+      every_n_epochs: 3
+      verbose: False
 
   train_batch_size: 1024
   eval_batch_size: 1024

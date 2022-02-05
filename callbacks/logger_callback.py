@@ -1,5 +1,5 @@
+import pytorch_lightning as pl
 from pytorch_lightning.callbacks import Callback
-import wandb
 
 
 class LoggerCallback(Callback):
