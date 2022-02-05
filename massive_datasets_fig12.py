@@ -46,8 +46,6 @@ def single_run(config, train_ds_size, complexity):
     val_check_interval_steps = \
         val_check_interval if isinstance(val_check_interval, int) else steps_in_epoch * val_check_interval
 
-    print(steps_in_epoch)
-    return
     # modify val_check_interval
     if val_check_interval_steps < 50:
         if 'val_check_interval' in train_cfg:
