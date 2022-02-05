@@ -1,8 +1,8 @@
 # name: <set in loop>
-group: massive-datasets-fig12-3
+group: massive-datasets-fig12-5-gpu
 
 model: MLP
-random_seed: 42
+#random_seed: 42
 
 data:
   task: VectorPVR
@@ -35,10 +35,10 @@ training:
     num_warmup_epochs: 10
 
   early_stopping:
-    hard_patience: 3 # checked every train epoch
-    soft_patience: 10 # checked every val epoch
-    verbose: True
+    hard_patience: 1 # checked every train epoch
+    soft_patience: 3 # checked every val epoch
+    verbose: False
 
   train_batch_size: 1024
-  eval_batch_size: 1024
+  eval_batch_size: 4096
   epochs: 200
