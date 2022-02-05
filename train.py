@@ -112,8 +112,10 @@ def train(config: dict):
     # append early stopping callback if found in config
     if 'early_stopping' in train_cfg:
         early_stopping_cfg = train_cfg['early_stopping']
+        verbose = early_stopping_cfg['verbose'] if 'verbose' in early_stopping_cfg else False
         earlyStoppingCallback = CustomEarlyStoppingCallback(hard_patience=early_stopping_cfg['hard_patience'],
-                                                            soft_patience=early_stopping_cfg['soft_patience'])
+                                                            soft_patience=early_stopping_cfg['soft_patience'],
+                                                            verbose=verbose)
         callbacks.append(earlyStoppingCallback)
 
     # determine validation frequency
