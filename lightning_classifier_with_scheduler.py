@@ -2,6 +2,7 @@ import math
 
 import torch
 import pytorch_lightning as pl
+from pytorch_lightning.utilities.types import EPOCH_OUTPUT
 
 from torch import nn
 from torch.nn import functional as F
@@ -87,7 +88,7 @@ class ClassiferWithScheduler(pl.LightningModule):
 
         # log to wandb
         self.log("train_loss", loss)
-        self.log("train_acc", self.train_acc)
+        self.log("train_acc", self.train_acc, on_epoch=True)
 
         return loss
 

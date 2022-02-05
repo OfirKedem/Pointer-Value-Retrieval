@@ -34,6 +34,10 @@ training:
   scheduler:
     num_warmup_epochs: 10
 
+  early_stopping:
+    hard_patience: 3 # checked every train epoch
+    soft_patience: 10 # checked every val epoch
+
   train_batch_size: 1024
   eval_batch_size: 1024
   epochs: 200

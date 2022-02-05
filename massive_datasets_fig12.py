@@ -3,6 +3,7 @@ from train import train
 import copy
 from argparse import ArgumentParser
 from math import ceil
+from pytorch_lightning.callbacks import EarlyStopping
 
 CONFIG_PATH = "configs/massive_datasets_fig12.yaml"
 
@@ -23,7 +24,6 @@ def single_run(config, train_ds_size, complexity):
     log_every_n_steps = train_cfg["log_every_n_steps"]
     val_check_interval = train_cfg["val_check_interval"]
     epochs = train_cfg["epochs"]
-
 
     exp_name = get_exp_name(train_ds_size, complexity)
 

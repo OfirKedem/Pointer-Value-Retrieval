@@ -10,6 +10,7 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import LearningRateMonitor
 
+from callbacks.custom_early_stopping import CustomEarlyStoppingCallback
 from callbacks.logger_callback import LoggerCallback
 from models import models_registry
 from datasets import tasks_registry
@@ -103,8 +104,17 @@ def train(config: dict):
     # log the config before training starts
     wandb_logger.experiment.config.update(config)
 
+    # create callbacks
     lr_monitor = LearningRateMonitor(logging_interval='step')
     logger_callback = LoggerCallback()
+    callbacks = [lr_monitor, logger_callback]
+
+    # append early stopping callback if found in config
+    if 'early_stopping' in train_cfg:
+        early_stopping_cfg = train_cfg['early_stopping']
+        earlyStoppingCallback = CustomEarlyStoppingCallback(hard_patience=early_stopping_cfg['hard_patience'],
+                                                            soft_patience=early_stopping_cfg['soft_patience'])
+        callbacks.append(earlyStoppingCallback)
 
     # determine validation frequency
     if 'val_check_interval' in train_cfg and 'check_val_every_n_epoch' in train_cfg:
@@ -123,7 +133,7 @@ def train(config: dict):
         precision=16 if (AVAIL_GPUS > 0 and train_cfg['mixed_precision']) else 32,
         max_epochs=train_cfg['epochs'],
         logger=wandb_logger,
-        callbacks=[lr_monitor, logger_callback]
+        callbacks=callbacks
     )
 
     # Train the model ⚡

@@ -10,4 +10,7 @@ do
   done
 done
 
+echo finsihed
+#echo shutting down in 10 seconds...
+#sleep 10
 #sudo shutdown -h now
