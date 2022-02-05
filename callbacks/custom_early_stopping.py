@@ -49,7 +49,7 @@ class CustomEarlyStoppingCallback(Callback):
             self.hard_counter += 1
 
             if self.verbose:
-                print(f"\nhard stopping conditions were met. hard_counter: {self.hard_counter}")
+                print(f"\n+++ hard stopping conditions were met. hard_counter: {self.hard_counter}")
 
             # check patience and stop if reached
             if self.hard_counter >= self.hard_patience:
@@ -59,7 +59,7 @@ class CustomEarlyStoppingCallback(Callback):
             self.hard_counter = 0
 
             if self.verbose:
-                print(f"\nhard stopping conditions were NOT met. hard_counter: {self.hard_counter}")
+                print(f"\n--- hard stopping conditions were NOT met. hard_counter: {self.hard_counter}")
 
         # log the counts left until stopping
         pl_module.log("hard_patience", float(self.hard_patience - self.hard_counter),
@@ -79,7 +79,7 @@ class CustomEarlyStoppingCallback(Callback):
             self.soft_counter += 1
 
             if self.verbose:
-                print(f"\nsoft stopping conditions were met. soft_counter: {self.soft_counter}")
+                print(f"\n+++ soft stopping conditions were met. soft_counter: {self.soft_counter}\n")
 
             # check patience and stop if reached
             if self.soft_counter >= self.soft_patience:
@@ -89,7 +89,7 @@ class CustomEarlyStoppingCallback(Callback):
             self.soft_counter = 0
 
             if self.verbose:
-                print(f"\nsoft stopping conditions were NOT met. soft_counter: {self.soft_counter}")
+                print(f"\n--- soft stopping conditions were NOT met. soft_counter: {self.soft_counter}\n")
 
         # save prev value for next epoch
         val_loss = self.metrics["val_loss"]
