@@ -126,6 +126,8 @@ def train(config: dict):
     check_val_every_n_epoch = train_cfg['check_val_every_n_epoch'] \
         if 'check_val_every_n_epoch' in train_cfg else 1
 
+    print(val_check_interval)
+    print(check_val_every_n_epoch)
     # Initialize a trainer
     trainer = Trainer(
         val_check_interval=val_check_interval,

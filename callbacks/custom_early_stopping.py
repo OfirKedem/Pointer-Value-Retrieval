@@ -42,7 +42,7 @@ class CustomEarlyStoppingCallback(Callback):
         self.metrics["train_acc_epoch"] = trainer.logged_metrics["train_acc_epoch"]
 
         # don't check until min_epochs is passed
-        if trainer.current_epoch < self.min_epochs:
+        if trainer.current_epoch + 1 < self.min_epochs:
             return
 
         if self._hard_stopping_condition():
@@ -71,7 +71,7 @@ class CustomEarlyStoppingCallback(Callback):
         self.metrics["val_loss"] = trainer.logged_metrics["val_loss"]
 
         # don't check until min_epochs is passed
-        if trainer.current_epoch < self.min_epochs:
+        if trainer.current_epoch + 1 < self.min_epochs:
             return
 
         # update soft counter
@@ -83,7 +83,7 @@ class CustomEarlyStoppingCallback(Callback):
 
             # check patience and stop if reached
             if self.soft_counter >= self.soft_patience:
-                print(f"\n\t *** soft stopping condition reached - stopping training!")
+                print(f"\n\t *** soft stopping condition reached - stopping training!\n")
                 trainer.should_stop = True
         else:
             self.soft_counter = 0
