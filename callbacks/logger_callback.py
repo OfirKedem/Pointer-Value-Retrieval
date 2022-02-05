@@ -12,5 +12,6 @@ class LoggerCallback(Callback):
         # pl_module.log("f_step", f_step, on_step=True, on_epoch=False, prog_bar=True, logger=False)
 
         # fraction of current epoch
-        f_epoch = (trainer.global_step + 1) / trainer.num_steps_in_epoch
+        f_epoch = trainer.global_step / trainer.num_steps_in_epoch
         pl_module.log("f_epoch", f_epoch, on_step=True, on_epoch=False, prog_bar=True, logger=True)
+
