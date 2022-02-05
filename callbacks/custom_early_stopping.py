@@ -4,7 +4,7 @@ import wandb
 
 class CustomEarlyStoppingCallback(Callback):
 
-    def __init__(self, hard_patience=1, soft_patience=1, min_epochs=2, verbose=False):
+    def __init__(self, hard_patience=1, soft_patience=1, min_epochs=1, verbose=False):
         super().__init__()
         self.hard_patience = hard_patience  # checked every train epoch
         self.soft_patience = soft_patience  # check every val epoch
