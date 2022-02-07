@@ -1,6 +1,5 @@
 # name: <set in loop>
-group: massive-datasets-fig12-5-gpu
-
+group: massive-datasets-fig13-m1
 model: MLP
 #random_seed: 42
 
