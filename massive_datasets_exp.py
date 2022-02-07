@@ -29,6 +29,7 @@ def single_run(config, train_ds_size, complexity, holdout):
 
     # set config params
     config["name"] = exp_name
+    data_cfg["train_params"] = {}
     data_cfg["train_params"]["size"] = train_ds_size
     # set complexity
     data_cfg["train_params"]["complexity"] = complexity
@@ -77,6 +78,7 @@ def single_run(config, train_ds_size, complexity, holdout):
 
 def main():
     parser = ArgumentParser()
+    parser.add_argument("-c", "--config", type=str, default=None, help="config path", required=True)
     parser.add_argument("-s", "--size", type=float, default=None, help="train dataset size", required=True)
     parser.add_argument("-m", "--complexity", type=int, default=None, help="complexity (m)", required=True)
     parser.add_argument("-ho", "--holdout", type=int, default=None, help="holdout", required=True)
@@ -84,11 +86,12 @@ def main():
 
     print('\n' + '>' * 15)
     print(f'\tnow running massive_datasets_exp.py --size {int(args.size)} --complexity {args.complexity} --holdout {args.holdout}')
+    print(f'\t\t--config {args.config}')
     print('>' * 15 + '\n')
 
     try:
         # load common config
-        with open(CONFIG_PATH, 'r') as stream:
+        with open(args.config, 'r') as stream:
             config = yaml.safe_load(stream)
 
         single_run(config, int(args.size), args.complexity, args.holdout)
