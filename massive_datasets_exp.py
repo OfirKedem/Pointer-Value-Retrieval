@@ -8,9 +8,9 @@ from pytorch_lightning.callbacks import EarlyStopping
 CONFIG_PATH = "configs/massive_datasets_fig12.yaml"
 
 
-def get_exp_name(train_ds_size, complexity):
+def get_exp_name(train_ds_size, complexity, holdout):
     ds_size_for_name = train_ds_size if train_ds_size < 1e5 else f"{train_ds_size:.1e}"
-    return f"md-fig12_ds={ds_size_for_name}_m={complexity}"
+    return f"md-fig12_ds={ds_size_for_name}_m={complexity}_ho={holdout}"
 
 
 def single_run(config, train_ds_size, complexity, holdout):
@@ -25,7 +25,7 @@ def single_run(config, train_ds_size, complexity, holdout):
     val_check_interval = train_cfg["val_check_interval"]
     epochs = train_cfg["epochs"]
 
-    exp_name = get_exp_name(train_ds_size, complexity)
+    exp_name = get_exp_name(train_ds_size, complexity, holdout)
 
     # set config params
     config["name"] = exp_name
