@@ -66,7 +66,7 @@ def single_run(config, train_ds_size, complexity, holdout):
         train_cfg['epochs'] = ceil(800.0 / steps_in_epoch)
 
     # print experiment details
-    str_to_print = f"*** {exp_name} | Size: {train_ds_size:.1e} ({train_ds_size}), Complexity: {complexity} ***"
+    str_to_print = f"*** {exp_name} | Size: {train_ds_size:.1e} ({train_ds_size}), Complexity: {complexity}, Holdout: {holdout} ***"
     str_to_print = (' ' * 5) + str_to_print + (' ' * 5)
     print('\n' + '-' * len(str_to_print))
     print(str_to_print)
