@@ -35,8 +35,8 @@ def single_run(config, train_ds_size, complexity, holdout):
     data_cfg["train_params"]["complexity"] = complexity
     data_cfg["val_params"]["complexity"] = complexity
     # set holdout
-    data_cfg["train_params"]["complexity"] = holdout
-    data_cfg["val_params"]["complexity"] = holdout
+    data_cfg["train_params"]["holdout"] = holdout
+    data_cfg["val_params"]["holdout"] = holdout
     # set val adversarial if holdout > 0
     data_cfg["val_params"]["adversarial"] = holdout > 0
 

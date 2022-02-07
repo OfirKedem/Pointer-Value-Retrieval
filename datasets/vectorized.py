@@ -32,8 +32,8 @@ class VectorPVR(Dataset):
     def __init__(self,
                  name: str,
                  size: int,
-                 complexity: int = 0,  # size of the window (m in the article)
-                 holdout: int = 0,  # number of permutations to holdout ('holdout-i' or '# holdout' in article)
+                 complexity: int,  # size of the window (m in the article)
+                 holdout: int,  # number of permutations to holdout ('holdout-i' or '# holdout' in article)
                  aggregation_method: str = 'mod_sum',
                  adversarial: bool = False):
 
@@ -55,6 +55,9 @@ class VectorPVR(Dataset):
 
         if complexity == 0 and holdout != 0:
             raise ValueError('Can`t holdout when complexity is 0.')
+
+        if adversarial and holdout == 0:
+            raise ValueError('Can`t do adversarial when holdout is 0.')
 
         self.name = name
         self.size = size
