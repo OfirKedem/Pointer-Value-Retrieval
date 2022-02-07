@@ -56,9 +56,6 @@ class VectorPVR(Dataset):
         if complexity == 0 and holdout != 0:
             raise ValueError('Can`t holdout when complexity is 0.')
 
-        if adversarial and holdout == 0:
-            raise ValueError('Can`t do adversarial when holdout is 0.')
-
         self.name = name
         self.size = size
         self.complexity = complexity
@@ -76,11 +73,10 @@ class VectorPVR(Dataset):
         # the pointer value should be limited so the window will fit in the samples
         self.data[:, 0] = torch.randint(10 - complexity, size=[size], dtype=self.dtype)
 
-        if holdout > 0:
-            if not adversarial:
-                self._remove_permutations()
-            else:
-                self._insert_permutations()
+        if adversarial:
+            self._insert_permutations()
+        else:
+            self._remove_permutations()
 
         # calculate values
         self.values = torch.zeros(size, dtype=self.dtype)
@@ -108,6 +104,9 @@ class VectorPVR(Dataset):
 
         return aggregator
 
+    def get_all_permutations(self):
+        return list(itertools.permutations(range(self.complexity + 1)))
+
     def get_holdout_permutations(self):
         # find the first 'holdout' permutations of (0, 1, ... , complexity)
         permutations_iterator = itertools.permutations(range(self.complexity + 1))
@@ -133,7 +132,7 @@ class VectorPVR(Dataset):
 
     def _insert_permutations(self):
         # create # holdout permutation of (0, 1, ... , complexity)
-        permutations = torch.tensor(self.get_holdout_permutations(), dtype=self.dtype)
+        permutations = torch.tensor(self.get_all_permutations(), dtype=self.dtype)
         permutations_selector = torch.randint(permutations.shape[0], size=[self.size])
 
         pointers = self.data[:, 0].long()
