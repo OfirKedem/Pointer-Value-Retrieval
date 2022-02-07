@@ -6,8 +6,15 @@ from torch.utils.data import Dataset
 
 
 # calculate vector size in MB
-def _get_tensor_size(a: torch.Tensor):
+def _get_tensor_size_mb(a: torch.Tensor):
     return (a.element_size() * a.nelement()) / 2 ** 20
+
+
+# element_size can be an integer or torch.dtype
+def _get_memory_size_mb(element_size, length):
+    if isinstance(element_size, torch.dtype):
+        element_size = torch.tensor(0, dtype=element_size).element_size()
+    return (element_size * length) / 2 ** 20
 
 
 def mod_sum(x: torch.Tensor):
@@ -20,8 +27,10 @@ def maj_vote(x: torch.Tensor):
 
 class VectorPVR(Dataset):
     sample_size = 11  # pointer + 10 digits
+    dtype = torch.long
 
     def __init__(self,
+                 name: str,
                  size: int,
                  complexity: int = 0,  # size of the window (m in the article)
                  holdout: int = 0,  # number of permutations to holdout ('holdout-i' or '# holdout' in article)
@@ -47,6 +56,7 @@ class VectorPVR(Dataset):
         if complexity == 0 and holdout != 0:
             raise ValueError('Can`t holdout when complexity is 0.')
 
+        self.name = name
         self.size = size
         self.complexity = complexity
         self.aggregation_method = aggregation_method
@@ -54,17 +64,29 @@ class VectorPVR(Dataset):
         self.adversarial = adversarial
         self.aggregator = self._set_up_aggregator(aggregation_method)
 
+        expected_memory_mb = _get_memory_size_mb(self.dtype, self.size * (self.sample_size + 1))
+        print(f"Expected '{name}' size: {expected_memory_mb:.3f}MB")
+
         # data is built from numbers 0-9
-        self.data = torch.randint(10, size=(size, self.sample_size), dtype=torch.uint8)
+        self.data = torch.randint(10, size=(size, self.sample_size), dtype=self.dtype)
 
         # the pointer value should be limited so the window will fit in the samples
-        self.data[:, 0] = torch.randint(10 - complexity, size=[size], dtype=torch.uint8)
+        self.data[:, 0] = torch.randint(10 - complexity, size=[size], dtype=self.dtype)
 
         if holdout > 0:
             if not adversarial:
                 self._remove_permutations()
             else:
                 self._insert_permutations()
+
+        # calculate values
+        self.values = torch.zeros(size, dtype=self.dtype)
+        for idx, sample in enumerate(self.data):
+            self.values[idx] = self.calc_value(sample)
+
+        # move to cuda - might not be helpful?
+        # self.data.to('cuda')
+        # self.values.to('cuda')
 
     @staticmethod
     def _set_up_aggregator(aggregation_method):
@@ -108,24 +130,21 @@ class VectorPVR(Dataset):
 
     def _insert_permutations(self):
         # create # holdout permutation of (0, 1, ... , complexity)
-        permutations = torch.tensor(self.get_holdout_permutations(), dtype=torch.uint8)
+        permutations = torch.tensor(self.get_holdout_permutations(), dtype=self.dtype)
         permutations_selector = torch.randint(permutations.shape[0], size=[self.size])
-        # permutations_selector = torch.zeros(size=[self.size])
 
         pointers = self.data[:, 0].long()
         for offset in range(self.complexity + 1):
             self.data[range(self.size), pointers + 1 + offset] = permutations[permutations_selector, offset]
 
     def calc_value(self, sample):
-        pointer = sample[0]
-        value = self.aggregator(sample[pointer + 1: pointer + 1 + self.complexity + 1])
-        return value
+        pointer_idx = sample[0] + 1
+        return self.aggregator(sample[pointer_idx: pointer_idx + self.complexity + 1])
+        # return torch.fmod(torch.sum(sample[pointer_idx: pointer_idx + self.complexity + 1]), 10)
 
     def __getitem__(self, idx):
-        sample = self.data[idx]
-        value = self.calc_value(sample)
-
-        return sample.long(), value.long()
+        return self.data[idx], self.values[idx]
+        # return self.data[idx].long(), self.values[idx].long()
 
     def __len__(self):
         return self.size
@@ -138,7 +157,7 @@ class VectorPVR(Dataset):
 def main():
     p = 3
     ds = VectorPVR(10 ** p, complexity=2, holdout=2, aggregation_method='mod_sum', adversarial=False)
-    print(p, ':', _get_tensor_size(ds.data))
+    print(p, ':', _get_tensor_size_mb(ds.data))
 
     for idx in range(len(ds)):
         print(ds[idx])

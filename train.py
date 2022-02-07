@@ -2,8 +2,8 @@ import math
 
 import pytorch_lightning
 import torch
-import wandb
 import yaml
+import time
 
 from torch.utils.data import DataLoader
 from pytorch_lightning import Trainer
@@ -25,21 +25,27 @@ AVAIL_GPUS = min(1, torch.cuda.device_count())
 AVAIL_CPUS = multiprocessing.cpu_count()
 
 
+def _get_new_int_seed():
+    return int(time.time() * 10000000) % (2 ** 32 -1)
+
+
 def setup_loaders(config: dict):
     data_cfg = config['data']
     train_cfg = config['training']
 
-    train_ds = tasks_registry[data_cfg['task']](**data_cfg['train_params'])
+    num_workers = (4 * AVAIL_GPUS) if (AVAIL_GPUS > 0) else AVAIL_CPUS
+
+    train_ds = tasks_registry[data_cfg['task']]('train_ds', **data_cfg['train_params'])
     train_batch_size = train_cfg['train_batch_size']
     train_loader = DataLoader(train_ds, batch_size=train_batch_size,
                               pin_memory=True,
-                              num_workers=AVAIL_CPUS - 1)
+                              num_workers=num_workers)
 
     eval_batch_size = train_cfg['eval_batch_size'] if 'eval_batch_size' in train_cfg else train_batch_size
-    val_ds = tasks_registry[data_cfg['task']](**data_cfg['val_params'])
+    val_ds = tasks_registry[data_cfg['task']]('val_ds', **data_cfg['val_params'])
     val_loader = DataLoader(val_ds, batch_size=eval_batch_size,
                             pin_memory=True,
-                            num_workers=AVAIL_CPUS - 1)
+                            num_workers=num_workers)
 
     return train_loader, val_loader
 
@@ -55,13 +61,12 @@ def train(config: dict):
     print(f'CPUS: {AVAIL_CPUS}, GPUS: {AVAIL_GPUS}')
 
     # set random seed
+    # notice: seed myst be (int) for seed_everything, but the default seed is (long)
     is_manual_seed = 'random_seed' in config and config['random_seed'] is not None
-    if is_manual_seed:
-        pytorch_lightning.seed_everything(config['random_seed'])
-    else:
-        config['random_seed'] = torch.initial_seed()
-
-    print(f'Random seed: {torch.initial_seed()} {"(Manually set)" if is_manual_seed else ""}')
+    random_seed = int(config['random_seed']) if is_manual_seed else _get_new_int_seed()
+    pytorch_lightning.seed_everything(random_seed)
+    config['random_seed'] = random_seed
+    print(f'Random seed: {random_seed} {"(Manual)" if is_manual_seed else "(Auto)"}')
 
     # Init our model
     train_cfg = config['training']
@@ -87,7 +92,10 @@ def train(config: dict):
         )
 
     # Init DataLoader from Dataset
+    t0 = time.time()
     train_loader, val_loader = setup_loaders(config)
+    t1 = time.time()
+    print(f"setup_loaders() time: {t1 - t0:.3f} (sec)")
 
     # setup WandB logger
     wandb_logger = WandbLogger(save_dir=None,
@@ -126,9 +134,6 @@ def train(config: dict):
     check_val_every_n_epoch = train_cfg['check_val_every_n_epoch'] \
         if 'check_val_every_n_epoch' in train_cfg else 1
 
-    print(val_check_interval)
-    print(check_val_every_n_epoch)
-    # Initialize a trainer
     trainer = Trainer(
         val_check_interval=val_check_interval,
         check_val_every_n_epoch=check_val_every_n_epoch,
@@ -137,25 +142,29 @@ def train(config: dict):
         precision=16 if (AVAIL_GPUS > 0 and train_cfg['mixed_precision']) else 32,
         max_epochs=train_cfg['epochs'],
         logger=wandb_logger,
-        callbacks=callbacks
+        callbacks=callbacks,
+        # profiler="pytorch",
     )
     # add num_steps_in_epoch to trainer, used in logger_callback
     trainer.num_steps_in_epoch = num_steps_in_epoch
 
     # Train the model ⚡
+    t0 = time.time()
     trainer.fit(cls, train_loader, val_loader)
+    t1 = time.time()
+    print(f"train.fit() time: {t1 - t0:.3f} (sec)")
 
 
 def main():
     parser = ArgumentParser()
     parser.add_argument("-c", "--config", type=str, default=None, help="path to yaml config file")
-    parser.add_argument("-s", "--seed", type=str, default=None, help="set manual random seed")
+    parser.add_argument("-s", "--seed", type=int, default=None, help="set manual random seed")
     parser.add_argument("-g", "--group", type=str, default=None, help="WandbLogger group")
     parser.add_argument("-n", "--name", type=str, default=None, help="WandbLogger name")
     args = parser.parse_args()
 
     if args.config is None:
-        print("Missing config file path. add it with -c or -config.")
+        print("Missing config file path. add it with -c or --config.")
         return
 
     with open(args.config, 'r') as stream:

@@ -13,7 +13,7 @@ def get_exp_name(train_ds_size, complexity):
     return f"md-fig12_ds={ds_size_for_name}_m={complexity}"
 
 
-def single_run(config, train_ds_size, complexity):
+def single_run(config, train_ds_size, complexity, holdout):
     # deep copy config so changes will not affect other runs
     config = copy.deepcopy(config)
 
@@ -27,11 +27,17 @@ def single_run(config, train_ds_size, complexity):
 
     exp_name = get_exp_name(train_ds_size, complexity)
 
-    # set name, dataset size & complexity
+    # set config params
     config["name"] = exp_name
     data_cfg["train_params"]["size"] = train_ds_size
+    # set complexity
     data_cfg["train_params"]["complexity"] = complexity
     data_cfg["val_params"]["complexity"] = complexity
+    # set holdout
+    data_cfg["train_params"]["complexity"] = holdout
+    data_cfg["val_params"]["complexity"] = holdout
+    # set val adversarial if holdout > 0
+    data_cfg["val_params"]["adversarial"] = holdout > 0
 
     # trim train batch size for smaller datasets
     modified_train_batch_size = min(train_batch_size, train_ds_size)
@@ -69,24 +75,15 @@ def single_run(config, train_ds_size, complexity):
     train(config)
 
 
-def loop_all_runs(config):
-    train_dataset_sizes = [64, 128, 1024, 1e4, 5e4, 1e5, 2e5, 3e5, 4e5, 5e5, 1e6, 1e7, 5e7]
-    MIN_COMPLEXITY = 0
-    MAX_COMPLEXITY = 5
-
-    for i, train_ds_size in enumerate(train_dataset_sizes):
-        for complexity in range(MIN_COMPLEXITY, MAX_COMPLEXITY + 1):
-            single_run(config, train_ds_size, complexity)
-
-
 def main():
     parser = ArgumentParser()
     parser.add_argument("-s", "--size", type=float, default=None, help="train dataset size", required=True)
     parser.add_argument("-m", "--complexity", type=int, default=None, help="complexity (m)", required=True)
+    parser.add_argument("-ho", "--holdout", type=int, default=None, help="holdout", required=True)
     args = parser.parse_args()
 
     print('\n' + '>' * 15)
-    print(f'\tnow running massive_datasets_fig12.py -size {int(args.size)} -complexity {args.complexity}')
+    print(f'\tnow running massive_datasets_exp.py --size {int(args.size)} --complexity {args.complexity} --holdout {args.holdout}')
     print('>' * 15 + '\n')
 
     try:
@@ -94,7 +91,7 @@ def main():
         with open(CONFIG_PATH, 'r') as stream:
             config = yaml.safe_load(stream)
 
-        single_run(config, int(args.size), args.complexity)
+        single_run(config, int(args.size), args.complexity, args.holdout)
     except KeyboardInterrupt:
         print("\nKeyboardInterrupt")
 

@@ -39,6 +39,6 @@ training:
     soft_patience: 3 # checked every val epoch
     verbose: False
 
-  train_batch_size: 1024
-  eval_batch_size: 4096
+  train_batch_size: 16
+  eval_batch_size: 16
   epochs: 200
