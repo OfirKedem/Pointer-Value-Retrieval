@@ -26,7 +26,7 @@ class CustomEarlyStoppingCallback(Callback):
         val_acc = self.metrics["val_acc"]
 
         # reached full accuracy on both train and val
-        return train_acc_epoch > 0.99 and val_acc > 0.99
+        return train_acc_epoch > 0.999 and val_acc > 0.999
 
     def _soft_stopping_condition(self):
         train_acc_epoch = self.metrics["train_acc_epoch"]
@@ -35,7 +35,7 @@ class CustomEarlyStoppingCallback(Callback):
         is_val_loss_decreasing = val_loss < self.prev_val_loss
 
         # train reached full accuracy but val is not improving
-        return train_acc_epoch > 0.99 and not is_val_loss_decreasing
+        return train_acc_epoch > 0.999 and not is_val_loss_decreasing
 
     def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
         # track train metrics
