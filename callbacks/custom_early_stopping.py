@@ -50,10 +50,10 @@ class CustomEarlyStoppingCallback(Callback):
             return
 
         # stop early if train failed
-        if trainer.current_epoch >= 100 and train_acc_epoch < 0.6:
-            print(f"\n\t *** train failed to learn - stopping training!")
-            trainer.should_stop = True
-            return
+        # if trainer.current_epoch >= 100 and train_acc_epoch < 0.6:
+        #     print(f"\n\t *** train failed to learn - stopping training!")
+        #     trainer.should_stop = True
+        #     return
 
         if self._hard_stopping_condition():
             self.hard_counter += 1
