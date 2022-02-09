@@ -38,6 +38,9 @@ class CustomEarlyStoppingCallback(Callback):
         return train_acc_epoch > 0.999 and not is_val_loss_decreasing
 
     def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+        if self.hard_patience is None:  # dont check if None
+            return
+
         # track train metrics
         self.metrics["train_acc_epoch"] = trainer.logged_metrics["train_acc_epoch"]
 
@@ -66,6 +69,9 @@ class CustomEarlyStoppingCallback(Callback):
                       prog_bar=True, logger=True)
 
     def on_validation_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+        if self.soft_patience is None:  # dont check if None
+            return
+
         # track train metrics
         self.metrics["val_acc"] = trainer.logged_metrics["val_acc"]
         self.metrics["val_loss"] = trainer.logged_metrics["val_loss"]

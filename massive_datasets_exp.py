@@ -34,9 +34,13 @@ def single_run(config, train_ds_size, complexity, holdout):
     # set complexity
     data_cfg["train_params"]["complexity"] = complexity
     data_cfg["val_params"]["complexity"] = complexity
-    # set holdout
+    # set holdout & adversarial
     data_cfg["train_params"]["holdout"] = holdout
     data_cfg["val_params"]["holdout"] = holdout
+
+    if holdout > 0:
+        data_cfg["val_params"]["adversarial"] = True
+        train_cfg["early_stopping"]["soft_patience"] = None  # cancel soft patience with holdout
 
     # trim train batch size for smaller datasets
     modified_train_batch_size = min(train_batch_size, train_ds_size)
