@@ -42,10 +42,17 @@ class CustomEarlyStoppingCallback(Callback):
             return
 
         # track train metrics
-        self.metrics["train_acc_epoch"] = trainer.logged_metrics["train_acc_epoch"]
+        train_acc_epoch = trainer.logged_metrics["train_acc_epoch"]
+        self.metrics["train_acc_epoch"] = train_acc_epoch
 
         # don't check until min_epochs is passed
         if trainer.current_epoch + 1 < self.min_epochs:
+            return
+
+        # stop early if train failed
+        if trainer.current_epoch >= 100 and train_acc_epoch < 0.6:
+            print(f"\n\t *** train failed to learn - stopping training!")
+            trainer.should_stop = True
             return
 
         if self._hard_stopping_condition():
