@@ -33,7 +33,8 @@ def setup_loaders(config: dict):
     train_batch_size = train_cfg['train_batch_size']
     train_loader = DataLoader(train_ds, batch_size=train_batch_size,
                               pin_memory=True,
-                              num_workers=AVAIL_CPUS - 1)
+                              num_workers=AVAIL_CPUS - 1,
+                              shuffle=True)
 
     eval_batch_size = train_cfg['eval_batch_size'] if 'eval_batch_size' in train_cfg else train_batch_size
     val_ds = tasks_registry[data_cfg['task']](**data_cfg['val_params'])
@@ -147,6 +148,8 @@ def train(config: dict):
         logger=wandb_logger,
         callbacks=callbacks
     )
+    # add num_steps_in_epoch to trainer, used in logger_callback
+    trainer.num_steps_in_epoch = num_steps_in_epoch
 
     # Train the model ⚡
     trainer.fit(cls, train_loader, val_loader)
