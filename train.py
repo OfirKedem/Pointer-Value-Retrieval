@@ -62,7 +62,7 @@ def setup_callbacks(callback_cfg, logger):
                                           **callback_cfg['checkpoint_saving'])
 
     callbacks = [lr_monitor,
-                 # logger_callback,
+                 logger_callback,
                  checkpoint_callback]
 
     # append early stopping callback if found in config
@@ -78,8 +78,6 @@ def setup_callbacks(callback_cfg, logger):
 
 
 def train(config: dict):
-    print(f'Experiment name: {config["name"]}')
-    print(f'Experiment group: {config["group"]}')
     print(f'CPUS: {AVAIL_CPUS}, GPUS: {AVAIL_GPUS}')
 
     # set random seed
@@ -124,6 +122,8 @@ def train(config: dict):
                                group=config["group"])
     # update experiment name if it was auto-generated
     config["name"] = wandb_logger.experiment.name
+    print(f'Experiment name: {config["name"]}')
+    print(f'Experiment group: {config["group"]}')
 
     # log the config before training starts
     wandb_logger.experiment.config.update(config)
