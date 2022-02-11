@@ -9,7 +9,12 @@ class MLP(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.embedding = nn.Embedding(10, 64)
+        # embedding of 0-9 is one-hot, embedding of 10 is all zeros
+        self.embedding = nn.Embedding(11, 10)
+        self.embedding.weight.data = torch.column_stack((torch.eye(10), torch.zeros(10)))
+        self.embedding.requires_grad_(False)
+
+        self.l1 = nn.Linear(self.embedding.weight.size()[1] * VectorPVR.sample_size, 512)
         self.l1 = nn.Linear(64 * VectorPVR.sample_size, 512)
         self.l2 = nn.Linear(512, 1024)
         self.l3 = nn.Linear(1024, 512)
