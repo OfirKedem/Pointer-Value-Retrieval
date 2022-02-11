@@ -1,17 +1,17 @@
 import math
+import os
 
 import pytorch_lightning
 import torch
-import wandb
 import yaml
 
 from torch.utils.data import DataLoader
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.callbacks import LearningRateMonitor
 
-from callbacks.custom_early_stopping import CustomEarlyStoppingCallback
-from callbacks.logger_callback import LoggerCallback
+from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
+from callbacks import CustomEarlyStoppingCallback, LoggerCallback
+
 from models import models_registry
 from datasets import tasks_registry
 from lightning_classifier import Classifer
@@ -50,6 +50,32 @@ def steps_in_epochs(config: dict):
     train_batch_size = config['training']['train_batch_size']
 
     return math.ceil(dataset_size / train_batch_size)
+
+
+def setup_callbacks(callback_cfg, logger):
+    # create callbacks
+    lr_monitor = LearningRateMonitor(logging_interval='step')
+    logger_callback = LoggerCallback()
+    checkpoint_callback = ModelCheckpoint(dirpath=os.path.join(logger.experiment.dir, 'Checkpoints'),
+                                          filename='epoch={epoch}-val_acc={val_acc:.2f}',
+                                          monitor='val_acc',
+                                          mode='max',
+                                          **callback_cfg['checkpoint_saving'])
+
+    callbacks = [lr_monitor,
+                 logger_callback,
+                 checkpoint_callback]
+
+    # append early stopping callback if found in config
+    if 'early_stopping' in callback_cfg:
+        early_stopping_cfg = callback_cfg['early_stopping']
+        verbose = early_stopping_cfg['verbose'] if 'verbose' in early_stopping_cfg else False
+        earlyStoppingCallback = CustomEarlyStoppingCallback(hard_patience=early_stopping_cfg['hard_patience'],
+                                                            soft_patience=early_stopping_cfg['soft_patience'],
+                                                            verbose=verbose)
+        callbacks.append(earlyStoppingCallback)
+
+    return callbacks
 
 
 def train(config: dict):
@@ -91,44 +117,26 @@ def train(config: dict):
     train_loader, val_loader = setup_loaders(config)
 
     # setup WandB logger
-    wandb_logger = WandbLogger(save_dir=None,
-                               project="pointer-value-retrieval",
+    wandb_logger = WandbLogger(project="pointer-value-retrieval",
                                entity="deep-learning-course-project",
                                name=config["name"],
                                group=config["group"])
     # update experiment name if it was auto-generated
     config["name"] = wandb_logger.experiment.name
-
-    print(f'Experiment group: {config["group"]}')
     print(f'Experiment name: {config["name"]}')
+    print(f'Experiment group: {config["group"]}')
 
     # log the config before training starts
     wandb_logger.experiment.config.update(config)
 
-    # create callbacks
-    lr_monitor = LearningRateMonitor(logging_interval='step')
-    logger_callback = LoggerCallback()
-    callbacks = [lr_monitor, logger_callback]
-
-    # append early stopping callback if found in config
-    if 'early_stopping' in train_cfg:
-        early_stopping_cfg = train_cfg['early_stopping']
-        verbose = early_stopping_cfg['verbose'] if 'verbose' in early_stopping_cfg else False
-        earlyStoppingCallback = CustomEarlyStoppingCallback(hard_patience=early_stopping_cfg['hard_patience'],
-                                                            soft_patience=early_stopping_cfg['soft_patience'],
-                                                            verbose=verbose)
-        callbacks.append(earlyStoppingCallback)
+    callbacks = setup_callbacks(train_cfg['callbacks'], wandb_logger)
 
     # determine validation frequency
     if 'val_check_interval' in train_cfg and 'check_val_every_n_epoch' in train_cfg:
         raise Exception("'val_check_interval' and 'check_val_every_n_epoch' shouldn't be used simultaneously")
-    val_check_interval = train_cfg['val_check_interval'] \
-        if 'val_check_interval' in train_cfg else 1.0
-    check_val_every_n_epoch = train_cfg['check_val_every_n_epoch'] \
-        if 'check_val_every_n_epoch' in train_cfg else 1
+    val_check_interval = train_cfg['val_check_interval'] if 'val_check_interval' in train_cfg else 1.0
+    check_val_every_n_epoch = train_cfg['check_val_every_n_epoch'] if 'check_val_every_n_epoch' in train_cfg else 1
 
-    print(val_check_interval)
-    print(check_val_every_n_epoch)
     # Initialize a trainer
     trainer = Trainer(
         val_check_interval=val_check_interval,
@@ -149,15 +157,15 @@ def train(config: dict):
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("-c", "--config", type=str, default=None, help="path to yaml config file")
+    parser.add_argument("-c", "--config", type=str, default='./configs/vector_test.yaml',
+                        help="path to yaml config file")
     parser.add_argument("-s", "--seed", type=str, default=None, help="set manual random seed")
     parser.add_argument("-g", "--group", type=str, default=None, help="WandbLogger group")
     parser.add_argument("-n", "--name", type=str, default=None, help="WandbLogger name")
     args = parser.parse_args()
 
     if args.config is None:
-        print("Missing config file path. add it with -c or -config.")
-        return
+        raise ValueError("Missing config file path. add it with -c or -config.")
 
     with open(args.config, 'r') as stream:
         config = yaml.safe_load(stream)

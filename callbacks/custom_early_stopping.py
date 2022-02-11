@@ -1,5 +1,4 @@
 from pytorch_lightning.callbacks import Callback
-import wandb
 
 
 class CustomEarlyStoppingCallback(Callback):
