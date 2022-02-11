@@ -25,7 +25,7 @@ class CustomEarlyStoppingCallback(Callback):
         val_acc = self.metrics["val_acc"]
 
         # reached full accuracy on both train and val
-        return train_acc_epoch > 0.99 and val_acc > 0.99
+        return train_acc_epoch > 0.9999 and val_acc > 0.9999
 
     def _soft_stopping_condition(self):
         train_acc_epoch = self.metrics["train_acc_epoch"]
@@ -34,15 +34,25 @@ class CustomEarlyStoppingCallback(Callback):
         is_val_loss_decreasing = val_loss < self.prev_val_loss
 
         # train reached full accuracy but val is not improving
-        return train_acc_epoch > 0.99 and not is_val_loss_decreasing
+        return train_acc_epoch > 0.9999 and not is_val_loss_decreasing
 
     def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
         # track train metrics
-        self.metrics["train_acc_epoch"] = trainer.logged_metrics["train_acc_epoch"]
+        train_acc_epoch = trainer.logged_metrics["train_acc_epoch"]
+        self.metrics["train_acc_epoch"] = train_acc_epoch
+
+        if self.hard_patience is None:  # dont check if None
+            return
 
         # don't check until min_epochs is passed
         if trainer.current_epoch + 1 < self.min_epochs:
             return
+
+        # stop early if train failed
+        # if trainer.current_epoch >= 100 and train_acc_epoch < 0.6:
+        #     print(f"\n\t *** train failed to learn - stopping training!")
+        #     trainer.should_stop = True
+        #     return
 
         if self._hard_stopping_condition():
             self.hard_counter += 1
@@ -68,6 +78,9 @@ class CustomEarlyStoppingCallback(Callback):
         # track train metrics
         self.metrics["val_acc"] = trainer.logged_metrics["val_acc"]
         self.metrics["val_loss"] = trainer.logged_metrics["val_loss"]
+
+        if self.soft_patience is None:  # dont check if None
+            return
 
         # don't check until min_epochs is passed
         if trainer.current_epoch + 1 < self.min_epochs:
