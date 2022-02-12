@@ -25,7 +25,7 @@ class CustomEarlyStoppingCallback(Callback):
         val_acc = self.metrics["val_acc"]
 
         # reached full accuracy on both train and val
-        return train_acc_epoch > 0.9999 and val_acc > 0.9999
+        return train_acc_epoch > 0.9999 and val_acc > 0.99
 
     def _soft_stopping_condition(self):
         train_acc_epoch = self.metrics["train_acc_epoch"]

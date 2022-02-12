@@ -8,7 +8,7 @@ data:
   task: VectorPVR
 
   train_params:
-    size: 1.0e+3
+    size: 1.0e+5
     complexity: 1
     holdout: 1
 
@@ -48,4 +48,4 @@ training:
 
   train_batch_size: 1024
   eval_batch_size: 1024
-  epochs: 1000
+  epochs: 200
