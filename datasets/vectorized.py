@@ -140,11 +140,9 @@ class VectorPVR(Dataset):
     def calc_value(self, sample):
         pointer_idx = sample[0] + 1
         return self.aggregator(sample[pointer_idx: pointer_idx + self.complexity + 1])
-        # return torch.fmod(torch.sum(sample[pointer_idx: pointer_idx + self.complexity + 1]), 10)
 
     def __getitem__(self, idx):
-        return self.data[idx], self.values[idx]
-        # return self.data[idx].long(), self.values[idx].long()
+        return self.data[idx], self.values[idx].item()
 
     def __len__(self):
         return self.size

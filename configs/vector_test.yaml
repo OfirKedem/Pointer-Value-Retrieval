@@ -1,22 +1,22 @@
-name: 'debug'
+name: 'simple adversarial - fixed dataset - small dataset'
 group:
 
 model: MLP
-#random_seed: 42
+random_seed: 42
 
 data:
   task: VectorPVR
 
   train_params:
-    size: 1.0e+5
-    complexity: 0
-    holdout: 0
+    size: 1.0e+3
+    complexity: 1
+    holdout: 1
 
   val_params:
     size: 1.0e+3
-    complexity: 0
-    holdout: 0
-    adversarial: false
+    complexity: 1
+    holdout: 1
+    adversarial: true
 
 training:
   mixed_precision: false # 'mixed-precision training' improves performance. is it?
@@ -43,9 +43,9 @@ training:
 
     checkpoint_saving:
       save_top_k: 10
-      every_n_epochs: 3
+      every_n_epochs: 2
       verbose: False
 
   train_batch_size: 1024
   eval_batch_size: 1024
-  epochs: 200
+  epochs: 1000

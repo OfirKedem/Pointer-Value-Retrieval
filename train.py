@@ -31,6 +31,8 @@ def _get_new_int_seed():
 
 
 def setup_loaders(config: dict):
+    torch.manual_seed(config['random_seed'])
+
     data_cfg = config['data']
     train_cfg = config['training']
 
@@ -66,7 +68,7 @@ def setup_callbacks(callback_cfg, logger):
     lr_monitor = LearningRateMonitor(logging_interval='step')
     logger_callback = LoggerCallback()
     checkpoint_callback = ModelCheckpoint(dirpath=os.path.join(logger.experiment.dir, 'Checkpoints'),
-                                          filename='epoch={epoch}-val_acc={val_acc:.2f}',
+                                          filename='{epoch}-val_acc={val_acc:.4f}',
                                           monitor='val_acc',
                                           mode='max',
                                           **callback_cfg['checkpoint_saving'])
