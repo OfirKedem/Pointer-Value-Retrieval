@@ -1,5 +1,5 @@
 # name: <set in loop>
-group: massive-datasets-fig12-5-gpu
+group: massive-datasets-fig13-m2
 
 model: MLP
 #random_seed: 42
@@ -14,6 +14,7 @@ data:
 
   val_params:
     size: 1.0e+5
+    adversarial: True
     # holdout: <set in args>
     # complexity: <set in args>
 
