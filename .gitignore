@@ -153,3 +153,6 @@ fabric.properties
 /lightning_logs/
 /wandb/
 /data/
+/Notebooks/
+/xai_research/influance_results/
+/influance_results/
