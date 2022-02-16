@@ -140,6 +140,9 @@ def train(config: dict):
     # log the config before training starts
     wandb_logger.experiment.config.update(config)
 
+    # set watch to log gradients as well, log_freq=100 by default
+    # wandb_logger.watch(cls, log_freq=100)
+
     callbacks = setup_callbacks(train_cfg['callbacks'], wandb_logger)
 
     # determine validation frequency
