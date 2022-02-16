@@ -40,7 +40,7 @@ def single_run(config, train_ds_size, complexity, holdout):
 
     if holdout > 0:
         data_cfg["val_params"]["adversarial"] = True
-        train_cfg["early_stopping"]["soft_patience"] = None  # cancel soft patience with holdout
+        train_cfg["callbacks"]["early_stopping"]["soft_patience"] = None  # cancel soft patience with holdout
 
     # trim train batch size for smaller datasets
     modified_train_batch_size = min(train_batch_size, train_ds_size)
