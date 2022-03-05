@@ -12,6 +12,7 @@ In order to train a model run the following command in the terminal
 Example configs can be found in the `configs` folder.
 
 To recreate figures from the paper run the appropriate bash script:
+
 `massive_datasets_fig12.sh`
 `massive_datasets_fig13_m1.sh`
 `massive_datasets_fig13_m2.sh`
