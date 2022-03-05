@@ -5,3 +5,12 @@ An *unofficial* PyTorch implementation of the 2021 paper [Pointer Value Retrieva
 Both the datasets and the models are pure pytorch modules. 
 
 For training we used Pytorch-Lightning. 
+
+In order to train a model run the following command in the terminal
+`python train.py -c <path_to_config_file> -s <seed value>`
+
+Example configs can be found in the `configs` folder.
+
+To recreate figures from the paper run the appropriate bash script.
+
+The code requires integration with WandB, but it can be easily edited out.

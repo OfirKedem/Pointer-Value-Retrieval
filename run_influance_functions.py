@@ -4,7 +4,7 @@ from xai_research.influance_function import compute_influence
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("-r", "--run", type=str, default='m21q11cw',
+    parser.add_argument("-r", "--run", type=str, default='awcek343',
                         help="run identifier in WandB")
 
     parser.add_argument("-e", "--epoch", type=int, default=75,
